@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campo de tulipanes amarillos</title>
+<link rel="icon" href="data:,">
+<style>
+  :root{
+    --sky-top:#8FD1E8;
+    --sky-bottom:#FDEFB8;
+    --sun:#FFE27A;
+    --sun-core:#FFF3C4;
+    --hill-back:#8FBF6B;
+    --hill-front:#6FA84E;
+    --petal:#FFD23F;
+    --petal-shade:#F2B705;
+    --petal-dark:#D99A00;
+    --stem:#4C8C3C;
+    --stem-dark:#3A6B2E;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html,body{
+    margin:0;
+    padding:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:var(--sky-bottom);
+    font-family:sans-serif;
+  }
+
+  #stage{
+    position:relative;
+    width:100vw;
+    height:100vh;
+    background:linear-gradient(to bottom, var(--sky-top) 0%, var(--sky-bottom) 70%);
+    overflow:hidden;
+  }
+
+  /* ---------- Sol ---------- */
+  .sun{
+    position:absolute;
+    top:8%;
+    right:12%;
+    width:min(14vw,120px);
+    height:min(14vw,120px);
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, var(--sun-core), var(--sun) 70%);
+    box-shadow:0 0 60px 20px rgba(255,226,122,0.55);
+    animation: pulse 6s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ transform:scale(1); }
+    50%{ transform:scale(1.06); }
+  }
+
+  /* ---------- Colinas ---------- */
+  .hill{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+  }
+  .hill-back{
+    height:32%;
+    background:var(--hill-back);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    transform:scaleX(1.3);
+    bottom:6%;
+  }
+  .hill-front{
+    height:26%;
+    background:var(--hill-front);
+    border-radius:50% 50% 0 0 / 100% 100% 0 0;
+    transform:scaleX(1.4);
+  }
+
+  /* ---------- Campo de tulipanes ---------- */
+  #field{
+    position:absolute;
+    bottom:0;
+    left:0;
+    width:100%;
+    height:34%;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-evenly;
+    padding:0 1%;
+    animation: rise 1.6s ease-out both;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(40px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  .flower{
+    position:relative;
+    transform-origin:bottom center;
+    animation-name: sway;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes sway{
+    0%,100%{ transform:rotate(-4deg); }
+    50%{ transform:rotate(4deg); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .flower, .sun{
+      animation:none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <div class="sun"></div>
+
+  <div class="hill hill-back"></div>
+  <div class="hill hill-front"></div>
+
+  <div id="field"></div>
+
+</div>
+
+<script>
+  // Genera un campo de tulipanes con variación orgánica de tamaño, ritmo y fase
+  const field = document.getElementById('field');
+  const totalFlowers = 22;
+
+  function makeFlower(){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'flower';
+
+    const scale = 0.7 + Math.random() * 0.6;
+    const duration = 3 + Math.random() * 2.5;
+    const delay = -Math.random() * duration;
+    const stemHeight = 60 + Math.random() * 40;
+
+    wrapper.style.transform = `scale(${scale})`;
+    wrapper.style.animationDuration = duration + 's';
+    wrapper.style.animationDelay = delay + 's';
+    wrapper.style.margin = '0 -6px';
+
+    const svgNS = "http://www.w3.org/2000/svg";
+    const svg = document.createElementNS(svgNS, "svg");
+    const canvasW = 90;
+    const bloomAreaH = 90;
+    svg.setAttribute("width", canvasW);
+    svg.setAttribute("height", stemHeight + bloomAreaH);
+    svg.setAttribute("viewBox", `0 0 ${canvasW} ${stemHeight + bloomAreaH}`);
+    const cx = canvasW / 2;
+
+    const defs = document.createElementNS(svgNS, "defs");
+    const grad = document.createElementNS(svgNS, "linearGradient");
+    grad.setAttribute("id", "stemGrad");
+    grad.setAttribute("x1", "0"); grad.setAttribute("y1", "0");
+    grad.setAttribute("x2", "0"); grad.setAttribute("y2", "1");
+    const stop1 = document.createElementNS(svgNS, "stop");
+    stop1.setAttribute("offset", "0%"); stop1.setAttribute("stop-color", "#5B8C3E");
+    const stop2 = document.createElementNS(svgNS, "stop");
+    stop2.setAttribute("offset", "100%"); stop2.setAttribute("stop-color", "#3A6B2E");
+    grad.appendChild(stop1); grad.appendChild(stop2);
+    defs.appendChild(grad);
+
+    // Tallo
+    const bloomCenterY = 46;
+    const stem = document.createElementNS(svgNS, "path");
+    stem.setAttribute("d", `M${cx} ${stemHeight+bloomAreaH} C ${cx-5} ${stemHeight+bloomAreaH-50}, ${cx+5} ${stemHeight+bloomAreaH-80}, ${cx} ${bloomCenterY+20}`);
+    stem.setAttribute("stroke", "url(#stemGrad)");
+    stem.setAttribute("stroke-width", "4");
+    stem.setAttribute("fill", "none");
+    stem.setAttribute("stroke-linecap", "round");
+
+    // Hoja
+    const leaf = document.createElementNS(svgNS, "path");
+    const leafY = stemHeight * 0.55 + bloomCenterY + 20;
+    leaf.setAttribute("d", `M${cx} ${leafY} C ${cx-20} ${leafY-6}, ${cx-24} ${leafY+14}, ${cx-4} ${leafY+18} Z`);
+    leaf.setAttribute("fill", "var(--stem)");
+
+    // Girasol: pétalos radiales + centro oscuro con textura de semillas
+    const bloom = document.createElementNS(svgNS, "g");
+    bloom.setAttribute("transform", `translate(${cx},${bloomCenterY})`);
+
+    const petalCount = 14;
+    for(let i=0;i<petalCount;i++){
+      const angle = (360/petalCount)*i;
+      const petal = document.createElementNS(svgNS, "ellipse");
+      petal.setAttribute("cx","0");
+      petal.setAttribute("cy","-15");
+      petal.setAttribute("rx","6");
+      petal.setAttribute("ry","12");
+      petal.setAttribute("fill", i % 2 === 0 ? "var(--petal)" : "var(--petal-shade)");
+      petal.setAttribute("transform", `rotate(${angle})`);
+      bloom.appendChild(petal);
+    }
+
+    const center = document.createElementNS(svgNS, "circle");
+    center.setAttribute("cx","0");
+    center.setAttribute("cy","0");
+    center.setAttribute("r","11");
+    center.setAttribute("fill","#6B4A1E");
+
+    const centerShade = document.createElementNS(svgNS, "circle");
+    centerShade.setAttribute("cx","-2.5");
+    centerShade.setAttribute("cy","-2.5");
+    centerShade.setAttribute("r","7.5");
+    centerShade.setAttribute("fill","#4A3110");
+    centerShade.setAttribute("opacity","0.6");
+
+    bloom.appendChild(center);
+    bloom.appendChild(centerShade);
+
+    // pequeñas semillas para dar textura al centro
+    for(let s=0;s<10;s++){
+      const seedAngle = (360/10)*s * (Math.PI/180);
+      const seed = document.createElementNS(svgNS, "circle");
+      seed.setAttribute("cx", (Math.cos(seedAngle)*5).toFixed(2));
+      seed.setAttribute("cy", (Math.sin(seedAngle)*5).toFixed(2));
+      seed.setAttribute("r","1");
+      seed.setAttribute("fill","#3A2508");
+      seed.setAttribute("opacity","0.7");
+      bloom.appendChild(seed);
+    }
+
+    svg.appendChild(defs);
+    svg.appendChild(stem);
+    svg.appendChild(leaf);
+    svg.appendChild(bloom);
+
+    wrapper.appendChild(svg);
+    return wrapper;
+  }
+
+  for(let i=0;i<totalFlowers;i++){
+    field.appendChild(makeFlower());
+  }
+</script>
+
+</body>
+</html>
